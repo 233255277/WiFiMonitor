@@ -29,6 +29,7 @@ import android.view.WindowManager;
  * - 使用 ConnectivityManager.NetworkCallback 实时监测网络变化
  * - 当 WiFi SSID 匹配黑名单关键词时，显示半透明悬浮窗警示
  * - 内置防抖 + SSID 缓存 + 延迟移除机制，避免悬浮窗频繁闪烁/消失
+ * - 4 层保活：onTaskRemoved 自恢复 / onDestroy 条件自恢复 / 看门狗定时巡检 / 电池优化豁免
  */
 public class WifiMonitorService extends Service {
 
@@ -63,6 +64,9 @@ public class WifiMonitorService extends Service {
     /** 缓存上一次有效 SSID，避免 getCurrentSsid() 偶发 null 导致误判 */
     private String lastKnownSsid = null;
 
+    /** onTaskRemoved 已触发重启，避免 onDestroy 重复调度 */
+    private boolean mRestartScheduled = false;
+
     /** 接收设置变更广播，触发悬浮窗更新 */
     private final BroadcastReceiver updateReceiver = new BroadcastReceiver() {
         @Override
@@ -94,6 +98,7 @@ public class WifiMonitorService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        mRestartScheduled = false; // 重置标记，新启动不再认为是重启
         createNotificationChannel();
         Notification notification = buildNotification();
         startForeground(NOTIFICATION_ID, notification);
@@ -103,6 +108,14 @@ public class WifiMonitorService extends Service {
         checkCurrentWifi();
 
         return START_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        mRestartScheduled = true;
+        // 第 1 层：用户划掉最近任务，1 秒后通过 AlarmManager 自动重启
+        KeepAliveReceiver.scheduleRestart(this, 1000);
     }
 
     @Override
@@ -119,6 +132,11 @@ public class WifiMonitorService extends Service {
             mainHandler.removeCallbacksAndMessages(null);
         }
         removeOverlay();
+
+        // 第 2 层：条件自恢复——仅当未被 onTaskRemoved 处理过且配置仍是启用状态才尝试重启
+        if (!mRestartScheduled && prefs != null && prefs.isServiceEnabled()) {
+            KeepAliveReceiver.scheduleRestart(this, 5000);
+        }
     }
 
     @Override
