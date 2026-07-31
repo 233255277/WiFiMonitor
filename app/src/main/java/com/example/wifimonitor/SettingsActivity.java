@@ -4,7 +4,11 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -33,6 +37,7 @@ public class SettingsActivity extends AppCompatActivity {
     private EditText etHeight;
     private EditText etX;
     private EditText etY;
+    private MaterialButton btnBatteryOpt;
 
     private PreferencesManager prefs;
     private int selectedColor;
@@ -48,6 +53,13 @@ public class SettingsActivity extends AppCompatActivity {
         initViews();
         initListeners();
         loadSettings();
+        updateBatteryOptStatus();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateBatteryOptStatus();
     }
 
     private void initViews() {
@@ -62,12 +74,14 @@ public class SettingsActivity extends AppCompatActivity {
         etHeight = findViewById(R.id.et_height);
         etX = findViewById(R.id.et_x);
         etY = findViewById(R.id.et_y);
+        btnBatteryOpt = findViewById(R.id.btn_battery_opt);
     }
 
     private void initListeners() {
         findViewById(R.id.btn_add_blacklist).setOnClickListener(v -> addBlacklistItem());
         findViewById(R.id.btn_save).setOnClickListener(v -> saveAllSettings());
         findViewById(R.id.btn_preview).setOnClickListener(v -> togglePreview());
+        btnBatteryOpt.setOnClickListener(v -> requestBatteryOptimization());
 
         // 颜色预设按钮
         int[] colorIds = {
@@ -253,17 +267,54 @@ public class SettingsActivity extends AppCompatActivity {
         return false;
     }
 
+    // ==================== 电池优化豁免（第4层保活） ====================
+
+    private void updateBatteryOptStatus() {
+        if (btnBatteryOpt == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm != null && pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                btnBatteryOpt.setText(R.string.battery_opt_granted);
+                btnBatteryOpt.setEnabled(false);
+            } else {
+                btnBatteryOpt.setText(R.string.battery_opt_request);
+                btnBatteryOpt.setEnabled(true);
+            }
+        } else {
+            btnBatteryOpt.setVisibility(View.GONE);
+        }
+    }
+
+    private void requestBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm != null && pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                Toast.makeText(this, R.string.battery_opt_already, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            try {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            } catch (Exception e) {
+                // 部分 ROM 不支持，跳转手动设置页
+                Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                startActivity(intent);
+            }
+        }
+    }
+
     // 预览按钮状态
     private boolean previewShowing = false;
 
     private void togglePreview() {
         if (previewShowing) {
-            // 隐藏预览：通知服务移除悬浮窗
+            // 隐藏预览：先标记禁用再停止服务
             if (isServiceRunning()) {
-                // 重启服务来清除悬浮窗
+                prefs.setServiceEnabled(false);
+                KeepAliveReceiver.cancelWatchdog(this);
                 Intent intent = new Intent(this, WifiMonitorService.class);
                 stopService(intent);
-                prefs.setServiceEnabled(false);
                 Toast.makeText(this, "预览已隐藏，监测服务已停止", Toast.LENGTH_SHORT).show();
             }
             ((MaterialButton) findViewById(R.id.btn_preview)).setText(R.string.preview);
@@ -285,6 +336,7 @@ public class SettingsActivity extends AppCompatActivity {
                     startService(intent);
                 }
                 prefs.setServiceEnabled(true);
+                KeepAliveReceiver.scheduleWatchdog(this);
                 Toast.makeText(this, "预览模式：悬浮窗正在显示", Toast.LENGTH_SHORT).show();
             }
             ((MaterialButton) findViewById(R.id.btn_preview)).setText(R.string.hide_preview);
