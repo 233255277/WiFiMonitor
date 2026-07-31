@@ -33,4 +33,10 @@
     <string name="notification_channel_desc">WiFi黑名单监测正在后台运行</string>
     <string name="notification_title">WiFi监测运行中</string>
     <string name="notification_text">正在监测WiFi连接...</string>
+    <!-- 保活：电池优化 -->
+    <string name="battery_opt_title">电池优化豁免</string>
+    <string name="battery_opt_request">允许后台运行（申请电池优化豁免）</string>
+    <string name="battery_opt_granted">✓ 已获得电池优化豁免</string>
+    <string name="battery_opt_already">已获得电池优化豁免，无需重复操作</string>
+    <string name="battery_opt_desc">允许后系统不会在后台限制本应用运行，提高服务存活率</string>
 </resources>
