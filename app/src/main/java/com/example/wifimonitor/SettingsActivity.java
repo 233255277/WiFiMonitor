@@ -81,7 +81,9 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btn_add_blacklist).setOnClickListener(v -> addBlacklistItem());
         findViewById(R.id.btn_save).setOnClickListener(v -> saveAllSettings());
         findViewById(R.id.btn_preview).setOnClickListener(v -> togglePreview());
-        btnBatteryOpt.setOnClickListener(v -> requestBatteryOptimization());
+        if (btnBatteryOpt != null) {
+            btnBatteryOpt.setOnClickListener(v -> requestBatteryOptimization());
+        }
 
         // 颜色预设按钮
         int[] colorIds = {
