@@ -24,6 +24,12 @@
     <!-- 开机自启动 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- 保活：电池优化豁免（第4层） -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- 保活：精准闹钟权限（Android 12+，看门狗定时巡检需要） -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -59,12 +65,14 @@
                 android:value="wifi_blacklist_monitor" />
         </service>
 
-        <!-- 开机广播接收器 -->
+        <!-- 保活广播接收器：合并开机自启 + 看门狗 + 延迟重启 -->
         <receiver
-            android:name=".BootReceiver"
+            android:name=".KeepAliveReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.example.wifimonitor.KEEPALIVE" />
+                <action android:name="com.example.wifimonitor.RESTART_SERVICE" />
             </intent-filter>
         </receiver>
 
