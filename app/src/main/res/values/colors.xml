@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#FF6200EE</color>
+    <color name="primary_dark">#FF3700B3</color>
+    <color name="accent">#FF03DAC5</color>
+    <color name="danger">#FFE53935</color>
+    <color name="safe">#FF4CAF50</color>
+    <color name="warning">#FFFF9800</color>
+    <color name="default_overlay">#FFE53935</color>
+    <color name="background">#FFF5F5F5</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="on_surface">#FF1C1B1F</color>
+    <color name="text_secondary">#FF666666</color>
+</resources>

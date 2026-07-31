@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">WiFi监测</string>
+    <string name="settings_title">设置</string>
+    <string name="service_running">监测服务运行中</string>
+    <string name="service_stopped">监测服务已停止</string>
+    <string name="start_service">启动监测</string>
+    <string name="stop_service">停止监测</string>
+    <string name="current_wifi">当前WiFi</string>
+    <string name="no_wifi">未连接WiFi</string>
+    <string name="blacklist_status">黑名单状态</string>
+    <string name="in_blacklist">⚠ 当前WiFi在黑名单中</string>
+    <string name="not_in_blacklist">✓ 安全</string>
+    <string name="btn_settings">自定义设置</string>
+    <string name="btn_permission">授予悬浮窗权限</string>
+    <string name="btn_location_permission">授予位置权限</string>
+    <string name="btn_notification_permission">授予通知权限</string>
+    <string name="blacklist_management">黑名单管理</string>
+    <string name="add_blacklist">添加黑名单词汇</string>
+    <string name="blacklist_hint">输入WiFi名称关键词</string>
+    <string name="empty_blacklist">黑名单为空</string>
+    <string name="color_setting">悬浮窗颜色</string>
+    <string name="opacity_setting">透明度</string>
+    <string name="size_setting">悬浮窗尺寸</string>
+    <string name="width_label">宽度 (px)</string>
+    <string name="height_label">高度 (px)</string>
+    <string name="position_setting">悬浮窗位置</string>
+    <string name="x_position">X 坐标</string>
+    <string name="y_position">Y 坐标</string>
+    <string name="save_settings">保存设置</string>
+    <string name="preview">预览悬浮窗</string>
+    <string name="hide_preview">隐藏预览</string>
+    <string name="notification_channel_name">WiFi监测服务</string>
+    <string name="notification_channel_desc">WiFi黑名单监测正在后台运行</string>
+    <string name="notification_title">WiFi监测运行中</string>
+    <string name="notification_text">正在监测WiFi连接...</string>
+</resources>
