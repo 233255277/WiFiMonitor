@@ -54,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
         updateServiceStatus();
         updateWifiInfo();
         registerWifiCallback();
+
+        // 保活：如果服务已在运行，确保看门狗已注册
+        if (isServiceRunning()) {
+            KeepAliveReceiver.scheduleWatchdog(this);
+        }
     }
 
     @Override
@@ -92,8 +97,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void toggleService() {
         if (isServiceRunning()) {
-            stopService(new Intent(this, WifiMonitorService.class));
+            // 先标记禁用、取消看门狗，再停止服务——避免 onDestroy 误判重启
             prefs.setServiceEnabled(false);
+            KeepAliveReceiver.cancelWatchdog(this);
+            stopService(new Intent(this, WifiMonitorService.class));
             Toast.makeText(this, "监测服务已停止", Toast.LENGTH_SHORT).show();
         } else {
             // 检查必要权限
@@ -119,6 +126,8 @@ public class MainActivity extends AppCompatActivity {
                 startService(intent);
             }
             prefs.setServiceEnabled(true);
+            // 保活：启动服务后注册看门狗
+            KeepAliveReceiver.scheduleWatchdog(this);
             Toast.makeText(this, "监测服务已启动", Toast.LENGTH_SHORT).show();
         }
         updateServiceStatus();
